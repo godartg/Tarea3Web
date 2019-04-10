@@ -1,0 +1,56 @@
+﻿@model List<Tarea3_CondoriVilcapuma.Models.ClsArchivo>
+@{
+    Layout = null;
+    int i = 1;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Index</title>
+</head>
+<body>
+    <h2>Subir Archivos</h2>
+
+
+
+    <div>
+        @using (Html.BeginForm("Index", "Home", FormMethod.Post, new { enctype = "multipart/form-data" }))
+        {
+            <input type="File" name="file" id="file" value="Choose File" />
+            <button type="submit">Upload</button>
+        }
+    </div>
+    <ul>
+        <table>
+            <tr>
+                <th>Id</th>
+                <th>Nombre</th>
+                <th>Tipo</th>
+                <th>Tamaño</th>
+                <th>Acciones</th>
+            </tr>
+            @foreach (var archivo in Model)
+            {
+                var link = @Url.Content("~/Content/Files/") + archivo.nombreFile.Replace(" ", "%20");
+
+                <tr>
+
+                    <td>@(i++)</td>
+                    <td><a href="@link">@archivo.nombreFile</a></td>
+                    <td>@archivo.tipo</td>
+                    <td>@archivo.tamano</td>
+                    <td>
+                        <td>@Html.ActionLink("Elimnar", "Eliminar", new {file= archivo.link })</td>
+                        <td>@Html.ActionLink("Editar", "Editar", new { file = archivo })</td>
+                    </td>
+                </tr>
+            }
+            
+        </table>
+        
+    </ul>
+</body>
+</html>
