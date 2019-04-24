@@ -1,0 +1,36 @@
+﻿@model IEnumerable<Tarea3_CondoriVilcapuma.Models.ClsCarpeta>
+
+@foreach(var carpeta1 in Model)
+{
+<div>
+    <div>
+        <div style="color:blue">Ciclo @carpeta1.nombreCarpeta</div>
+        @using (Html.BeginForm("Index", "Home", FormMethod.Post, new { enctype = "multipart/form-data" }))
+        {
+            Html.Hidden(carpeta1.link, "directorio");
+            <input type="File" name="file" id="file" value="Choose File" />
+            <button type="submit">Upload</button>
+        }
+    </div>
+    @foreach (var carpeta2 in carpeta1.Carpetas)
+    {
+        <div>@carpeta2.nombreCarpeta</div>
+        using (Html.BeginForm("Index", "Home", FormMethod.Post, new { enctype = "multipart/form-data" }))
+        {
+            Html.Hidden(carpeta2.link, "directorio");
+            <input type="File" name="file" id="file" value="Choose File" />
+            <button type="submit">Upload</button>
+        }
+        if (carpeta2.Archivos!=null)
+        {
+            foreach (var archivo in carpeta2.Archivos)
+            {
+                <div><a href="@archivo.link">@archivo.nombreFile</a></div>
+            }
+        }
+
+
+    }
+</div>
+ 
+}
