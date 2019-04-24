@@ -11,6 +11,8 @@ namespace Tarea3_CondoriVilcapuma.Models
     {
         public string nombreFile { get; set; }
         public string link { get; set; }
-        
+        public string tipo { get; set; }
+        public double tamano { get; set; }
+
     }
 }

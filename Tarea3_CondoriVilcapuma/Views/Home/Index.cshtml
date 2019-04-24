@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Tarea3_CondoriVilcapuma.Models.ClsCarpeta>
+﻿@model List<Tarea3_CondoriVilcapuma.Models.ClsArchivo>
 @{
     Layout = null;
     int i = 1;
@@ -12,18 +12,9 @@
     <title>Index</title>
 </head>
 <body>
+    
     <h2>Carga Académica</h2>
-
-
-    <div>
-        @using (Html.BeginForm("Index", "Home", FormMethod.Post, new { enctype = "multipart/form-data" }))
-        {
-            <input type="File" name="file" id="file" value="Choose File" />
-            <button type="submit">Upload</button>
-        }
-    </div>
-    <h2>Carga Académica</h2>
-
+    <p>@ViewBag.Error</p>
     <div>
         @using (Html.BeginForm("Index", "Home", FormMethod.Post, new { enctype = "multipart/form-data" }))
         {
@@ -55,7 +46,6 @@
                         @using (Html.BeginForm("Editar", "Home", FormMethod.Post, new { enctype = "multipart/form-data" }))
                         {
                             <input type="File" name="file" id="file" value="Choose File" />
-
                             <input id="totalLink" name="totalLink" type="hidden" value=@archivo.link />
                             <button type="submit">Upload</button>
                         }
@@ -67,18 +57,7 @@
 
     </ul>
     <div>Seleccione los nombres según desea Generar</div>
-    @if (Model.Any())
-    {
-        <div>
-            @Html.Partial("_ListarCarpetas", Model)
-        </div>
-    }
-    else
-    {
-        <div>
-
-        </div>
-    }
+    
 
     <div>Total de Registros Generados: @ViewBag.totalRegistros</div>
     <div>Total de Cursos Generados: @ViewBag.totalCursos</div>

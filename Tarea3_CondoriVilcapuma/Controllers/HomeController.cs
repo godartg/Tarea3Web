@@ -18,62 +18,35 @@ namespace Tarea3_CondoriVilcapuma.Controllers
         }
         
         // GET: Home
-        public ActionResult Index(List<ClsCarga> listaCarga)
+        public ActionResult Index(int? @totalRegistros, int? @totalCursos, int? totalDocentes)
         {
-            
-            var path = Server.MapPath(@"~/Content/Files/");
 
+            List<ClsArchivo> listFiles = new List<ClsArchivo>();
+            var path = Server.MapPath(@"~/Content/Principal/");
             DirectoryInfo directoryInfo = new DirectoryInfo(path);
-            
-            List<ClsCarpeta> listCarpetas = new List<ClsCarpeta>();
-            List<ClsArchivo> listArchivos;
-            List<ClsCarpeta> listSubCarpetas;
-            ClsArchivo archivo;
-            ClsCarpeta subCarpeta;
-            foreach (var item in directoryInfo.GetDirectories())
-            {
 
-                listSubCarpetas = new List<ClsCarpeta>();
-                foreach (var item2 in item.GetDirectories())
+
+            foreach (var item in directoryInfo.GetFiles())
+            {
+                listFiles.Add(new ClsArchivo()
                 {
-                    subCarpeta = new ClsCarpeta();
-                    listArchivos = new List<ClsArchivo>();
-                    
-                    foreach (var item3 in item.GetFiles())
-                    {
-                        archivo = new ClsArchivo();
-                        archivo.nombreFile = item3.Name;
-                        archivo.link = item3.FullName;
-                        listArchivos.Add(archivo);
-                    }
-                    subCarpeta.nombreCarpeta = item2.Name;
-                    subCarpeta.link = item2.FullName;
-                    listSubCarpetas.Add(subCarpeta);
-                    
-                }
-                
-                listCarpetas.Add(new ClsCarpeta()
-                {
-                    nombreCarpeta = item.Name,
+
+                    nombreFile = item.Name,
                     link = item.FullName,
-                    Carpetas = listSubCarpetas
+                    tipo = item.Extension,
+                    tamano = item.Length
+
+
                 });
 
+            }
 
-            }
-            if(listaCarga!= null)
-            {
-                ViewBag.totalRegistros = listaCarga.Count();
-                ViewBag.totalCursos = (from lista in listaCarga group lista by lista.asignatura).Count();
-                ViewBag.totalDocentes = (from lista in listaCarga group lista by lista.docente).Count();
-            }
-            else
-            {
-                ViewBag.totalRegistros = 0;
-                ViewBag.totalCursos = 0;
-                ViewBag.totalDocentes = 0;
-            }
-            return View(listCarpetas);
+            ViewBag.totalRegistros = totalRegistros;
+            ViewBag.totalCursos = totalCursos;
+            ViewBag.totalDocentes = totalDocentes;
+
+            //listaArchivo = dir.EnumerateFiles().Select(f => f.Name);
+            return View(listFiles);
         }
         
 
@@ -91,7 +64,8 @@ namespace Tarea3_CondoriVilcapuma.Controllers
                 {
 
                     var path = Path.Combine(Server.MapPath(directorio), file.FileName);
-                    var ubicacion = Server.MapPath(@"~/Content/Files/");
+                    var ubicacion1 = Server.MapPath(@"~/Content/Ejercicio1/");
+                    var ubicacion2 = Server.MapPath(@"~/Content/Ejercicio2/");
                     var data = new byte[file.ContentLength];
                     file.InputStream.Read(data, 0, file.ContentLength);
 
@@ -99,8 +73,15 @@ namespace Tarea3_CondoriVilcapuma.Controllers
                     {
                         sw.Write(data, 0, data.Length);
                     }
-                    List<ClsCarga> listaCarga= importar(path, ubicacion);
-                    return RedirectToAction("Index", listaCarga);   
+                    List<ClsCarga> listaCarga= importar(path, ubicacion1, ubicacion2);
+
+                    int totalRegistros = listaCarga.Count();
+                    int totalCursos = (from lista in listaCarga group lista by lista.asignatura).Count();
+                    int totalDocentes = (from lista in listaCarga group lista by lista.docente).Count();
+             
+
+                    
+                    return RedirectToAction("Index", "Home", new { @totalRegistros = totalRegistros, @totalCursos = totalCursos , @totalDocentes = totalDocentes });   
                 }
                 else
                 {
@@ -118,11 +99,12 @@ namespace Tarea3_CondoriVilcapuma.Controllers
             }
             
         }
-        public static List<ClsCarga> importar(string _path, string _ubicacion)
+        public static List<ClsCarga> importar(string _path, string _ubicacion1, string _ubicacion2)
         {
             var path = _path;
-            var ubicacion = _ubicacion;
-            
+            var ubicacion1 = _ubicacion1;
+            var ubicacion2 = _ubicacion2;
+
             Excel.Application application = new Excel.Application();
             Excel.Workbook workbook= application.Workbooks.Open(path);
             Excel.Worksheet worksheet = workbook.ActiveSheet;
@@ -140,21 +122,40 @@ namespace Tarea3_CondoriVilcapuma.Controllers
                     carga.tipo = ((Excel.Range)range.Cells[row, 4]).Text;
                     carga.docente = ((Excel.Range)range.Cells[row, 5]).Text;
                     carga.ciclo = ((Excel.Range)range.Cells[row, 6]).Text;
-                    carga.seccion = ((Excel.Range)range.Cells[row, 8]).Text;
-                    carga.semestre = ((Excel.Range)range.Cells[row, 9]).Text;
+                    carga.seccion = ((Excel.Range)range.Cells[row, 7]).Text;
+                    carga.semestre = ((Excel.Range)range.Cells[row, 8]).Text;
                     listaCarga.Add(carga);
                 }
                 
             }
             workbook.Close(false, path, false);
             var cicloCurso = from lista in listaCarga group lista by lista.ciclo;
-            DirectoryInfo directoryInfo = new DirectoryInfo(ubicacion);
+            var docenteCurso = from lista in listaCarga group lista by lista.docente;
+            DirectoryInfo directoryInfo = new DirectoryInfo(ubicacion1);
             foreach (var ciclo in cicloCurso)
             {
                 DirectoryInfo cicloDirectory = directoryInfo.CreateSubdirectory(ciclo.Key);
                 foreach (var curso in ciclo)
                 {
-                    DirectoryInfo cursoDirectory = cicloDirectory.CreateSubdirectory(curso.asignatura);
+                    DirectoryInfo cursoDirectory = cicloDirectory.CreateSubdirectory(curso.codigo +" "+curso.asignatura+" " + curso.seccion);
+                }
+            }
+            DirectoryInfo directoryInfo2 = new DirectoryInfo(ubicacion2);
+            foreach (var docente in docenteCurso)
+            {
+                DirectoryInfo docenteDirectory;
+                if (docente.Key.Equals(""))
+                {
+                    docenteDirectory = directoryInfo2.CreateSubdirectory("Anonimo");
+                }
+                else
+                {
+                    docenteDirectory = directoryInfo2.CreateSubdirectory(docente.Key);
+
+                }
+                foreach (var curso in docente)
+                {
+                    DirectoryInfo cursoDirectory2 = docenteDirectory.CreateSubdirectory(curso.codigo + " " + curso.asignatura + " " + curso.seccion);
                 }
             }
             return listaCarga;
@@ -167,10 +168,17 @@ namespace Tarea3_CondoriVilcapuma.Controllers
             archivo.Delete();
             return RedirectToAction("Index");
         }
-        
-        public ActionResult Editar(string file)
+        public ActionResult Editar(string totalLink, HttpPostedFileBase file)
         {
-            FileInfo archivo = new FileInfo(@file);
+            FileInfo archivo = new FileInfo(@totalLink);
+            archivo.Delete();
+            if (file.ContentLength > 0)
+            {
+                var fileName = Path.GetFileName(file.FileName);
+                var path = Path.Combine(Server.MapPath(@"~/Content/Files/"), fileName);
+                file.SaveAs(path);
+
+            }
 
             return RedirectToAction("Index");
         }
